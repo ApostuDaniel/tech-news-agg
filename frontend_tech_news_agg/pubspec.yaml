@@ -1,0 +1,24 @@
+name: frontend_tech_news_agg
+description: A new Flutter project.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=2.19.4 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # api_cache_manager: ^1.0.2
+  http: ^0.13.5
+  # flutter_secure_storage: ^3.3.1+1
+  image_card: ^0.0.4
+  shared_preferences: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
