@@ -16,42 +16,42 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // late Future<UserFeeds> userFeeds;
-  // late Future<List<Feed>> allFeeds;
-  // // late Future<FeedContentModel> feedContent;
-  // late Future<JwtPayload?> payload;
+  late Future<UserFeeds> _userFeeds;
+  late Future<List<Feed>> _allFeeds;
+  // late Future<FeedContentModel> feedContent;
+  late Future<JwtPayload?> _payload;
+  int? feedIndex;
   // String? feedLink;
   // //  = JwtPayload.fromJson(
   // //     json.decode(Config.storage?.getString("login_details") ?? ""));
 
-  UserFeeds? userFeeds;
-  List<Feed>? allFeeds;
-  JwtPayload? payload;
-  int? feedIndex;
-  FeedContentModel? feedContent;
+  // UserFeeds? userFeeds;
+  // List<Feed>? allFeeds;
+  // JwtPayload? payload;
+  // FeedContentModel? feedContent;
 
   T? cast<T>(x) => x is T ? x : null;
 
   @override
   void initState() {
     super.initState();
-    // userFeeds = APIService.getUserFeeds();
-    // allFeeds = APIService.getAllFeeds();
-    // payload = SharedService.userIdentification();
+    _userFeeds = APIService.getUserFeeds();
+    _allFeeds = APIService.getAllFeeds();
+    _payload = SharedService.userIdentification();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: Future.wait(
-            [SharedService.userIdentification(), APIService.getUserFeeds()]),
+        future: Future.wait([_payload, _userFeeds]),
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
           if (snapshot.hasData) {
-            payload = cast<JwtPayload>(snapshot.data![0]);
-            userFeeds = cast<UserFeeds>(snapshot.data![1]);
+            var payload = cast<JwtPayload>(snapshot.data![0]);
+            var userFeeds = cast<UserFeeds>(snapshot.data![1]);
             if (userFeeds != null &&
-                userFeeds?.feeds != null &&
-                (userFeeds?.feeds ?? []).isNotEmpty) {
+                userFeeds.feeds != null &&
+                (userFeeds.feeds ?? []).isNotEmpty &&
+                feedIndex == null) {
               feedIndex = 0;
             }
             return Scaffold(
@@ -60,6 +60,22 @@ class _HomePageState extends State<HomePage> {
                 title: Text("Welcome ${payload?.username}"),
                 elevation: 0,
                 actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/home',
+                        );
+                      },
+                      child: const Text("Home")),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/available-feeds',
+                        );
+                      },
+                      child: const Text("Available feeds")),
                   IconButton(
                     icon: const Icon(
                       Icons.logout,
@@ -75,9 +91,9 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               backgroundColor: Colors.grey[200],
-              body: feedContentDisplay(),
+              body: feedContentDisplay(userFeeds),
               drawer: Drawer(
-                child: feeds(),
+                child: feeds(userFeeds),
               ),
             );
           } else if (snapshot.hasError) {
@@ -90,7 +106,7 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  Widget feedContentDisplay() {
+  Widget feedContentDisplay(UserFeeds? userFeeds) {
     if (feedIndex == null) {
       return const Center(
         child: Text("You have not subscribed to any feeds yet"),
@@ -101,7 +117,7 @@ class _HomePageState extends State<HomePage> {
             "${userFeeds?.feeds![feedIndex ?? 0].feedLink}"),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            feedContent = snapshot.data;
+            var feedContent = snapshot.data;
             if (feedContent == null) {
               return const Center(child: Text("No content"));
             } else {
@@ -111,17 +127,17 @@ class _HomePageState extends State<HomePage> {
                 crossAxisCount: 2,
                 // Generate 100 widgets that display their index in the List.
                 children:
-                    List.generate(feedContent?.items?.length ?? 0, (index) {
+                    List.generate(feedContent.items?.length ?? 0, (index) {
                   return Card(
                     clipBehavior: Clip.antiAlias,
                     child: Column(children: [
                       ListTile(
                         // leading: Image.network(
                         //     "${userFeeds?.feeds![feedIndex ?? 0].imageLink}"),
-                        leading: Icon(Icons.feed_rounded),
-                        title: Text("${feedContent?.items![index].title}"),
+                        leading: const Icon(Icons.feed_rounded),
+                        title: Text("${feedContent.items![index].title}"),
                         subtitle: Text(
-                          "${feedContent?.items![index].author}",
+                          "${feedContent.items![index].author}",
                           style:
                               TextStyle(color: Colors.black.withOpacity(0.6)),
                         ),
@@ -129,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          "${feedContent?.items![index].description}",
+                          "${feedContent.items![index].description}",
                           style:
                               TextStyle(color: Colors.black.withOpacity(0.6)),
                         ),
@@ -150,14 +166,14 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  Widget feeds() {
+  Widget feeds(UserFeeds? userFeeds) {
     if (userFeeds == null) {
       return const Center(
           child: Text("You have not subscribed to any feed yet"));
     }
     return ListView.builder(
         padding: const EdgeInsets.all(8),
-        itemCount: userFeeds?.feeds?.length,
+        itemCount: userFeeds.feeds?.length,
         itemBuilder: (BuildContext context, int index) {
           // if (feeds[index].imageLink != null) {
           //   return Card(
@@ -166,15 +182,16 @@ class _HomePageState extends State<HomePage> {
           //     ),
           //   );
           // } else {
+          Color tileColor =
+              index == feedIndex ? const Color(0xFF283B71) : Colors.white;
           return Card(
             child: ListTile(
               leading: const Icon(Icons.feed),
-              title: Text("${userFeeds?.feeds![index].name}"),
-              subtitle: Text("${userFeeds?.feeds![index].imageLink}"),
-              onTap: () => setState(() async {
+              title: Text(userFeeds.feeds![index].name),
+              subtitle: Text("${userFeeds.feeds![index].imageLink}"),
+              tileColor: tileColor,
+              onTap: () => setState(() {
                 feedIndex = index;
-                feedContent = await APIService.getFeedContent(
-                    "${userFeeds?.feeds![index].feedLink}");
               }),
             ),
           );

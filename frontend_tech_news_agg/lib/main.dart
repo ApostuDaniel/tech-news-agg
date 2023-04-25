@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'pages/available_feeds_page.dart';
 import 'services/shared_service.dart';
 import 'config.dart';
 
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/available-feeds': (context) => const AvailableFeedsPage(),
       },
     );
   }

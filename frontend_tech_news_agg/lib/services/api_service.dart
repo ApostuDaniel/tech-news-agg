@@ -111,6 +111,28 @@ class APIService {
     throw Exception(response.body);
   }
 
+  static Future<bool> updatedUserFeeds(UserFeeds userFeeds) async {
+    var loginDetails = await SharedService.loginDetails();
+    var userIdentification = await SharedService.userIdentification();
+
+    Map<String, String> requestHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': loginDetails!.token
+    };
+
+    var url = Uri.http(
+        Config.apiURL, "${Config.feedsEndpoint}/${userIdentification?.userId}");
+
+    var updatedData = userFeeds.toJsonPut();
+    var response = await client.put(url,
+        headers: requestHeaders, body: json.encode(updatedData));
+
+    if (response.statusCode == 204) {
+      return true;
+    }
+    throw Exception(response.body);
+  }
+
   static Future<List<Feed>> getAllFeeds() async {
     var url = Uri.http(Config.apiURL, Config.feedsEndpoint);
 

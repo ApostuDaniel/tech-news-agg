@@ -18,7 +18,7 @@ const parseRSS = async (feedLink) =>{
 
     return {
         title: feed.title,
-        image: feed.image.url,
+        image: feed?.image?.url,
         description: feed.description,
         items: items
     }
